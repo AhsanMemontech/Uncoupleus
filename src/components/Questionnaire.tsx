@@ -176,7 +176,7 @@ export default function Questionnaire({ questions, onComplete, title, subtitle }
           <div className="text-center">
             <Loader2 className="h-12 w-12 sm:h-16 sm:w-16 mx-auto mb-4 animate-spin" />
             <h1 className="text-2xl sm:text-3xl font-bold mb-2">Processing Your Responses</h1>
-            <p className="text-cyan-100 text-sm sm:text-base">We're analyzing your answers to provide personalized recommendations</p>
+            <p className="text-cyan-100 text-sm sm:text-base">We&apos;re analyzing your answers to provide personalized recommendations</p>
           </div>
         </div>
         <div className="p-6 sm:p-10">
@@ -209,7 +209,7 @@ export default function Questionnaire({ questions, onComplete, title, subtitle }
       <div className="bg-gradient-to-r from-cyan-600 to-cyan-700 text-white p-6 sm:p-10">
         <div className="text-center">
           <h1 className="text-2xl sm:text-3xl font-extrabold mb-2 tracking-tight">{title || 'Eligibility Check'}</h1>
-          <p className="text-cyan-100 text-base sm:text-lg font-medium">{subtitle || 'Let\'s determine if uncontested divorce is right for you'}</p>
+          <p className="text-cyan-100 text-base sm:text-lg font-medium">{subtitle || 'Let&apos;s determine if uncontested divorce is right for you'}</p>
         </div>
       </div>
       

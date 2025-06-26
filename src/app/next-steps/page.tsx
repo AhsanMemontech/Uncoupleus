@@ -56,7 +56,7 @@ export default function NextStepsPage() {
                 <div>
                   <h4 className="font-medium text-white mb-2">Make Copies of Your Forms</h4>
                   <p className="text-gray-300 text-sm mb-3">
-                    Print multiple copies of each form. You'll need:
+                    Print multiple copies of each form. You&apos;ll need:
                   </p>
                   <ul className="text-gray-300 text-sm space-y-1 ml-4">
                     <li>• 1 original for the court</li>
@@ -72,7 +72,7 @@ export default function NextStepsPage() {
                 <div>
                   <h4 className="font-medium text-white mb-2">File Your Forms</h4>
                   <p className="text-gray-300 text-sm mb-3">
-                    Take your forms to the courthouse during business hours. You'll need to:
+                    Take your forms to the courthouse during business hours. You&apos;ll need to:
                   </p>
                   <ul className="text-gray-300 text-sm space-y-1 ml-4">
                     <li>• Pay the filing fee (typically $210-$335)</li>
@@ -125,7 +125,7 @@ export default function NextStepsPage() {
       icon: CheckCircle,
       content: (
         <div className="space-y-6">
-          <h3 className="text-lg font-semibold text-white">What You'll Need</h3>
+          <h3 className="text-lg font-semibold text-white">What You&apos;ll Need</h3>
           
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-4">
@@ -136,7 +136,7 @@ export default function NextStepsPage() {
               <div className="space-y-3">
                 <div className="flex items-center space-x-3 p-3 rounded-lg border border-gray-600" style={{ backgroundColor: 'hsla(0, 0%, 100%, 0.05)' }}>
                   <CheckCircle className="h-4 w-4 text-green-400" />
-                  <span className="text-gray-300 text-sm">Valid photo ID (driver's license or passport)</span>
+                  <span className="text-gray-300 text-sm">Valid photo ID (driver&apos;s license or passport)</span>
                 </div>
                 <div className="flex items-center space-x-3 p-3 rounded-lg border border-gray-600" style={{ backgroundColor: 'hsla(0, 0%, 100%, 0.05)' }}>
                   <CheckCircle className="h-4 w-4 text-green-400" />

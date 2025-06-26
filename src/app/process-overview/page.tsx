@@ -95,8 +95,8 @@ export default function ProcessOverviewPage() {
             Your Divorce Process
           </h1>
           <p className="text-lg sm:text-xl text-gray-300 max-w-3xl mx-auto px-4">
-            Here's exactly what to expect during your uncontested divorce in New York State. 
-            We'll guide you through each step to make the process as smooth as possible.
+            Heres exactly what to expect during your uncontested divorce in New York State. 
+            Well guide you through each step to make the process as smooth as possible.
           </p>
         </div>
 
