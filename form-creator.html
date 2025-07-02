@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Form Creator - NY Divorce</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #667eea;
+        }
+        .question {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            border: 1px solid #e9ecef;
+        }
+        .question-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .question-details {
+            color: #666;
+            font-size: 14px;
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px 5px;
+            transition: transform 0.2s;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+            background: #6c757d;
+        }
+        .instructions {
+            background: #e3f2fd;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #2196f3;
+        }
+        .form-url {
+            background: #f0f8ff;
+            border: 2px dashed #667eea;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .form-url input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: monospace;
+            margin: 10px 0;
+        }
+        .copy-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Google Form Creator for NY Divorce</h1>
+        
+        <div class="instructions">
+            <h3>📋 Quick Setup Instructions</h3>
+            <p>This tool will help you create the Google Form with all the required sections and questions. Follow these steps:</p>
+            <ol>
+                <li>Click "Create Google Form" below</li>
+                <li>Copy the pre-filled form structure</li>
+                <li>Paste it into Google Forms</li>
+                <li>Get the embed URL and update your app</li>
+            </ol>
+        </div>
+
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="#" class="btn" onclick="createForm()">🎯 Create Google Form</a>
+            <a href="#" class="btn btn-secondary" onclick="showManualInstructions()">📝 Manual Instructions</a>
+        </div>
+
+        <div id="formStructure" style="display: none;">
+            <h3>📄 Form Structure to Copy</h3>
+            <div class="form-url">
+                <textarea id="formData" rows="20" style="width: 100%; font-family: monospace; padding: 15px; border-radius: 8px; border: 1px solid #ddd;"></textarea>
+                <button class="copy-btn" onclick="copyToClipboard()">📋 Copy to Clipboard</button>
+            </div>
+        </div>
+
+        <div id="manualInstructions" style="display: none;">
+            <h3>📝 Manual Creation Steps</h3>
+            
+            <div class="section">
+                <h4>Section A: Basic Information</h4>
+                <div class="question">
+                    <div class="question-title">Your full legal name</div>
+                    <div class="question-details">Type: Short answer | Required: Yes</div>
+                </div>
+                <div class="question">
+                    <div class="question-title">Your address</div>
+                    <div class="question-details">Type: Paragraph | Required: Yes</div>
+                </div>
+                <div class="question">
+                    <div class="question-title">Your email</div>
+                    <div class="question-details">Type: Email | Required: Yes</div>
+                </div>
+                <div class="question">
+                    <div class="question-title">Your phone number</div>
+                    <div class="question-details">Type: Phone number | Required: Yes</div>
+                </div>
+                <div class="question">
+                    <div class="question-title">Spouse's full legal name</div>
+                    <div class="question-details">Type: Short answer | Required: Yes</div>
+                </div>
+                <div class="question">
+                    <div class="question-title">Spouse's last known address</div>
+                    <div class="question-details">Type: Paragraph | Required: Yes</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h4>Section B: Marriage Details</h4>
+                <div class="question">
+                    <div class="question-title">Date of marriage</div>
+                    <div class="question-details">Type: Date | Required: Yes</div>
+                </div>
+                <div class="question">
+                    <div class="question-title">City of marriage</div>
+                    <div class="question-details">Type: Short answer | Required: Yes</div>
+                </div>
+                <div class="question">
+                    <div class="question-title">State of marriage</div>
+                    <div class="question-details">Type: Short answer | Required: Yes</div>
+                </div>
+                <div class="question">
+                    <div class="question-title">Type of ceremony</div>
+                    <div class="question-details">Type: Multiple choice | Required: Yes | Options: Civil, Religious</div>
+                </div>
+                <div class="question">
+                    <div class="question-title">Did either spouse change names?</div>
+                    <div class="question-details">Type: Yes/No | Required: Yes</div>
+                </div>
+                <div class="question">
+                    <div class="question-title">Who changed their name?</div>
+                    <div class="question-details">Type: Multiple choice | Required if "Yes" | Options: You, Your spouse, Both</div>
+                </div>
+                <div class="question">
+                    <div class="question-title">Former name</div>
+                    <div class="question-details">Type: Short answer | Required if "Yes"</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h4>Section C: Residency & Grounds</h4>
+                <div class="question">
+                    <div class="question-title">Have you lived in NY for 2+ years?</div>
+                    <div class="question-details">Type: Yes/No | Required: Yes</div>
+                </div>
+                <div class="question">
+                    <div class="question-title">If No, which alternative route applies?</div>
+                    <div class="question-details">Type: Multiple choice | Required if "No" | Options: Marriage occurred in NY, Grounds occurred in NY, Both parties consent to NY jurisdiction</div>
+                </div>
+                <div class="question">
+                    <div class="question-title">Approximate date of marriage breakdown</div>
+                    <div class="question-details">Type: Date | Required: Yes</div>
+                </div>
+                <div class="question">
+                    <div class="question-title">Are you filing for no-fault divorce?</div>
+                    <div class="question-details">Type: Yes/No | Required: Yes</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h4>Section D: Property & Support</h4>
+                <div class="question">
+                    <div class="question-title">Do you have a signed settlement agreement?</div>
+                    <div class="question-details">Type: Yes/No | Required: Yes</div>
+                </div>
+                <div class="question">
+                    <div class="question-title">Upload settlement agreement</div>
+                    <div class="question-details">Type: File upload | Required if "Yes" | Accept: PDF, DOC, DOCX | Max: 10MB</div>
+                </div>
+                <div class="question">
+                    <div class="question-title">Do you have shared bank accounts?</div>
+                    <div class="question-details">Type: Yes/No | Required: Yes</div>
+                </div>
+                <div class="question">
+                    <div class="question-title">Bank account details and who keeps which</div>
+                    <div class="question-details">Type: Paragraph | Required if "Yes"</div>
+                </div>
+                <div class="question">
+                    <div class="question-title">Do you have shared property/vehicles?</div>
+                    <div class="question-details">Type: Yes/No | Required: Yes</div>
+                </div>
+                <div class="question">
+                    <div class="question-title">Property/vehicle details and assignment</div>
+                    <div class="question-details">Type: Paragraph | Required if "Yes"</div>
+                </div>
+                <div class="question">
+                    <div class="question-title">Will you include spousal support?</div>
+                    <div class="question-details">Type: Yes/No | Required: Yes</div>
+                </div>
+                <div class="question">
+                    <div class="question-title">Monthly support amount</div>
+                    <div class="question-details">Type: Short answer | Required if "Yes"</div>
+                </div>
+                <div class="question">
+                    <div class="question-title">Support duration</div>
+                    <div class="question-details">Type: Short answer | Required if "Yes"</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h4>Section E: Name Change</h4>
+                <div class="question">
+                    <div class="question-title">Do you want to revert to a former name?</div>
+                    <div class="question-details">Type: Yes/No | Required: Yes</div>
+                </div>
+                <div class="question">
+                    <div class="question-title">Your former name</div>
+                    <div class="question-details">Type: Short answer | Required if "Yes"</div>
+                </div>
+                <div class="question">
+                    <div class="question-title">Does your spouse want to revert to a former name?</div>
+                    <div class="question-details">Type: Yes/No | Required: Yes</div>
+                </div>
+                <div class="question">
+                    <div class="question-title">Spouse's former name</div>
+                    <div class="question-details">Type: Short answer | Required if "Yes"</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h4>Section F: Filing & Support</h4>
+                <div class="question">
+                    <div class="question-title">Can you pay the ~$335 filing fees?</div>
+                    <div class="question-details">Type: Yes/No | Required: Yes</div>
+                </div>
+                <div class="question">
+                    <div class="question-title">Do you have access to a printer/scanner?</div>
+                    <div class="question-details">Type: Yes/No | Required: Yes</div>
+                </div>
+                <div class="question">
+                    <div class="question-title">Would you like an optional legal review call?</div>
+                    <div class="question-details">Type: Yes/No | Required: Yes</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-url">
+            <h3>🔗 Embed URL</h3>
+            <p>Once you create the form, paste the embed URL here:</p>
+            <input type="text" id="embedUrl" placeholder="https://docs.google.com/forms/d/e/YOUR_FORM_ID/viewform?embedded=true">
+            <button class="copy-btn" onclick="copyEmbedUrl()">📋 Copy Embed URL</button>
+        </div>
+    </div>
+
+    <script>
+        function createForm() {
+            const formData = `NY Uncontested Divorce - Information Collection
+
+Complete this form to generate your divorce documents
+
+SECTION A: Basic Information
+Please provide your basic contact information and your spouse's details.
+
+1. Your full legal name (Short answer, Required)
+2. Your address (Paragraph, Required)
+3. Your email (Email, Required)
+4. Your phone number (Phone number, Required)
+5. Spouse's full legal name (Short answer, Required)
+6. Spouse's last known address (Paragraph, Required)
+
+SECTION B: Marriage Details
+Information about your marriage ceremony and any name changes.
+
+1. Date of marriage (Date, Required)
+2. City of marriage (Short answer, Required)
+3. State of marriage (Short answer, Required)
+4. Type of ceremony (Multiple choice, Required)
+   - Civil
+   - Religious
+5. Did either spouse change names? (Yes/No, Required)
+6. Who changed their name? (Multiple choice, Required if "Yes")
+   - You
+   - Your spouse
+   - Both
+7. Former name (Short answer, Required if "Yes")
+
+SECTION C: Residency & Grounds
+Residency requirements and grounds for filing divorce in New York.
+
+1. Have you lived in NY for 2+ years? (Yes/No, Required)
+2. If No, which alternative route applies? (Multiple choice, Required if "No")
+   - Marriage occurred in NY
+   - Grounds occurred in NY
+   - Both parties consent to NY jurisdiction
+3. Approximate date of marriage breakdown (Date, Required)
+4. Are you filing for no-fault divorce? (Yes/No, Required)
+
+SECTION D: Property & Support
+Details about shared assets, property, and support arrangements.
+
+1. Do you have a signed settlement agreement? (Yes/No, Required)
+2. Upload settlement agreement (File upload, Required if "Yes")
+   - Accept: PDF, DOC, DOCX
+   - Max: 10MB
+3. Do you have shared bank accounts? (Yes/No, Required)
+4. Bank account details and who keeps which (Paragraph, Required if "Yes")
+5. Do you have shared property/vehicles? (Yes/No, Required)
+6. Property/vehicle details and assignment (Paragraph, Required if "Yes")
+7. Will you include spousal support? (Yes/No, Required)
+8. Monthly support amount (Short answer, Required if "Yes")
+9. Support duration (Short answer, Required if "Yes")
+
+SECTION E: Name Change
+Information about reverting to former names.
+
+1. Do you want to revert to a former name? (Yes/No, Required)
+2. Your former name (Short answer, Required if "Yes")
+3. Does your spouse want to revert to a former name? (Yes/No, Required)
+4. Spouse's former name (Short answer, Required if "Yes")
+
+SECTION F: Filing & Support
+Final questions about filing fees and support options.
+
+1. Can you pay the ~$335 filing fees? (Yes/No, Required)
+2. Do you have access to a printer/scanner? (Yes/No, Required)
+3. Would you like an optional legal review call? (Yes/No, Required)
+
+CONDITIONAL LOGIC SETUP:
+- Section B Q5 → Q6: If "Yes" → Show Q6
+- Section B Q5 → Q7: If "Yes" → Show Q7
+- Section C Q1 → Q2: If "No" → Show Q2
+- Section D Q1 → Q2: If "Yes" → Show Q2
+- Section D Q3 → Q4: If "Yes" → Show Q4
+- Section D Q5 → Q6: If "Yes" → Show Q6
+- Section D Q7 → Q8: If "Yes" → Show Q8
+- Section D Q7 → Q9: If "Yes" → Show Q9
+- Section E Q1 → Q2: If "Yes" → Show Q2
+- Section E Q3 → Q4: If "Yes" → Show Q4`;
+
+            document.getElementById('formData').value = formData;
+            document.getElementById('formStructure').style.display = 'block';
+            document.getElementById('manualInstructions').style.display = 'none';
+        }
+
+        function showManualInstructions() {
+            document.getElementById('manualInstructions').style.display = 'block';
+            document.getElementById('formStructure').style.display = 'none';
+        }
+
+        function copyToClipboard() {
+            const textarea = document.getElementById('formData');
+            textarea.select();
+            document.execCommand('copy');
+            alert('Form structure copied to clipboard!');
+        }
+
+        function copyEmbedUrl() {
+            const input = document.getElementById('embedUrl');
+            input.select();
+            document.execCommand('copy');
+            alert('Embed URL copied to clipboard!');
+        }
+    </script>
+</body>
+</html> 

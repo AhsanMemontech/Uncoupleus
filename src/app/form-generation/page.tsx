@@ -1,433 +1,236 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { FileText, Download, CheckCircle, AlertCircle, Clock, User, Calendar, MapPin, Building, ArrowRight, ArrowLeft, Eye, EyeOff } from 'lucide-react'
-
-interface FormData {
-  // Personal Information
-  firstName: string
-  lastName: string
-  dateOfBirth: string
-  socialSecurityNumber: string
-  email: string
-  phone: string
-  
-  // Address Information
-  streetAddress: string
-  city: string
-  state: string
-  zipCode: string
-  
-  // Spouse Information
-  spouseFirstName: string
-  spouseLastName: string
-  spouseDateOfBirth: string
-  spouseSocialSecurityNumber: string
-  spouseEmail: string
-  spousePhone: string
-  spouseStreetAddress: string
-  spouseCity: string
-  spouseState: string
-  spouseZipCode: string
-  
-  // Marriage Information
-  marriageDate: string
-  marriageLocation: string
-  separationDate: string
-  
-  // Children Information
-  hasChildren: boolean
-  childrenDetails: Array<{
-    name: string
-    dateOfBirth: string
-    relationship: string
-  }>
-}
-
-interface GeneratedForm {
-  id: string
-  name: string
-  description: string
-  status: 'generating' | 'completed' | 'error'
-  downloadUrl?: string
-  preview?: string
-}
+import { useState } from 'react'
+import { formFieldMappings, courtForms, getFormMapping, generateMappingCSV, getFieldsBySection, getAllSections } from '@/lib/formMapping'
+import { Download, FileText } from 'lucide-react'
 
 export default function FormGenerationPage() {
-  const router = useRouter()
-  const [formData, setFormData] = useState<FormData | null>(null)
-  const [generatedForms, setGeneratedForms] = useState<GeneratedForm[]>([])
-  const [isGenerating, setIsGenerating] = useState(false)
-  const [currentStep, setCurrentStep] = useState<'review' | 'generating' | 'completed'>('review')
-  const [showSSN, setShowSSN] = useState(false)
+  const [selectedCourtForm, setSelectedCourtForm] = useState<string>('')
+  const [selectedSection, setSelectedSection] = useState<string>('')
+  const [searchTerm, setSearchTerm] = useState('')
 
-  // Required forms for uncontested divorce in NY
-  const requiredForms = [
-    {
-      id: 'summons',
-      name: 'Summons with Notice',
-      description: 'Official notice to your spouse about the divorce proceedings',
-      formNumber: 'UD-1'
-    },
-    {
-      id: 'verified-complaint',
-      name: 'Verified Complaint for Divorce',
-      description: 'The main divorce petition explaining the grounds for divorce',
-      formNumber: 'UD-2'
-    },
-    {
-      id: 'affidavit',
-      name: 'Affidavit of Service',
-      description: 'Proof that your spouse was properly served with the divorce papers',
-      formNumber: 'UD-3'
-    },
-    {
-      id: 'financial-disclosure',
-      name: 'Statement of Net Worth',
-      description: 'Financial disclosure form showing assets and liabilities',
-      formNumber: 'UD-4'
-    },
-    {
-      id: 'settlement-agreement',
-      name: 'Settlement Agreement',
-      description: 'Agreement between spouses on property division and other matters',
-      formNumber: 'UD-5'
-    },
-    {
-      id: 'judgment',
-      name: 'Judgment of Divorce',
-      description: 'Final court order granting the divorce',
-      formNumber: 'UD-6'
-    }
-  ]
+  const sections = getAllSections()
+  
+  const filteredMappings = formFieldMappings.filter(mapping => {
+    const matchesSearch = mapping.googleFormField.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         mapping.formstackTag.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         mapping.description.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesCourtForm = !selectedCourtForm || mapping.courtForms.includes(selectedCourtForm)
+    const matchesSection = !selectedSection || mapping.section === selectedSection
+    return matchesSearch && matchesCourtForm && matchesSection
+  })
 
-  useEffect(() => {
-    // Load form data from localStorage
-    const savedData = localStorage.getItem('divorceFormData')
-    const paymentStatus = localStorage.getItem('paymentCompleted')
-    
-    if (savedData) {
-      setFormData(JSON.parse(savedData))
-    } else {
-      // Redirect to information collection if no data
-      router.push('/information-collection')
-      return
-    }
-    
-    // Check if payment was completed
-    if (!paymentStatus) {
-      // Redirect to payment if not paid
-      router.push('/payment')
-    }
-  }, [router])
-
-  const generateForms = async () => {
-    setIsGenerating(true)
-    setCurrentStep('generating')
-
-    // Simulate form generation process
-    const forms: GeneratedForm[] = requiredForms.map(form => ({
-      id: form.id,
-      name: form.name,
-      description: form.description,
-      status: 'generating' as const
-    }))
-
-    setGeneratedForms(forms)
-
-    // Simulate processing each form
-    for (let i = 0; i < forms.length; i++) {
-      await new Promise(resolve => setTimeout(resolve, 1500)) // Simulate processing time
-      
-      setGeneratedForms(prev => prev.map((form, index) => 
-        index === i 
-          ? { 
-              ...form, 
-              status: 'completed' as const,
-              downloadUrl: `/api/download/${form.id}`,
-              preview: generateFormPreview(form.id, formData!)
-            }
-          : form
-      ))
-    }
-
-    setIsGenerating(false)
-    setCurrentStep('completed')
+  const handleDownloadCSV = () => {
+    const csv = generateMappingCSV()
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'form-field-mapping.csv'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    window.URL.revokeObjectURL(url)
   }
 
-  const generateFormPreview = (formId: string, data: FormData): string => {
-    const previews: { [key: string]: string } = {
-      summons: `SUMMONS WITH NOTICE\n\nTO: ${data.spouseFirstName} ${data.spouseLastName}\n\nYou are hereby summoned to answer the complaint in this action and to serve a copy of your answer, or, if the complaint is not served with this summons, to serve a notice of appearance, on the plaintiff's attorney within 20 days after the service of this summons...`,
-      'verified-complaint': `VERIFIED COMPLAINT FOR DIVORCE\n\nPlaintiff: ${data.firstName} ${data.lastName}\nDefendant: ${data.spouseFirstName} ${data.spouseLastName}\n\n1. Plaintiff resides at ${data.streetAddress}, ${data.city}, ${data.state} ${data.zipCode}.\n2. Defendant resides at ${data.spouseStreetAddress || data.streetAddress}, ${data.spouseCity || data.city}, ${data.spouseState || data.state} ${data.spouseZipCode || data.zipCode}...`,
-      affidavit: `AFFIDAVIT OF SERVICE\n\nI, ${data.firstName} ${data.lastName}, being duly sworn, depose and say:\n\n1. I am the plaintiff in this action.\n2. On [DATE], I served the Summons with Notice and Verified Complaint for Divorce upon ${data.spouseFirstName} ${data.spouseLastName}...`,
-      'financial-disclosure': `STATEMENT OF NET WORTH\n\nName: ${data.firstName} ${data.lastName}\nAddress: ${data.streetAddress}, ${data.city}, ${data.state} ${data.zipCode}\n\nASSETS:\n- Checking Accounts: $[AMOUNT]\n- Savings Accounts: $[AMOUNT]\n- Real Estate: $[AMOUNT]\n- Vehicles: $[AMOUNT]\n- Other Assets: $[AMOUNT]\n\nLIABILITIES:\n- Credit Cards: $[AMOUNT]\n- Mortgages: $[AMOUNT]\n- Other Debts: $[AMOUNT]...`,
-      'settlement-agreement': `SETTLEMENT AGREEMENT\n\nThis agreement is made between ${data.firstName} ${data.lastName} ("Plaintiff") and ${data.spouseFirstName} ${data.spouseLastName} ("Defendant") on [DATE].\n\n1. PROPERTY DIVISION:\n   - Real Estate: [DETAILS]\n   - Personal Property: [DETAILS]\n   - Financial Accounts: [DETAILS]\n\n2. CHILD CUSTODY: ${data.hasChildren ? `\n   - Custody arrangements for ${data.childrenDetails.length} child(ren)` : '\n   - No children involved'}\n\n3. SUPPORT: [DETAILS]...`,
-      judgment: `JUDGMENT OF DIVORCE\n\nIT IS ORDERED AND ADJUDGED that:\n\n1. The marriage between ${data.firstName} ${data.lastName} and ${data.spouseFirstName} ${data.spouseLastName} is hereby dissolved.\n\n2. The parties were married on ${data.marriageDate} in ${data.marriageLocation}.\n\n3. The grounds for divorce are [GROUNDS].\n\n4. All other relief requested is granted as set forth in the Settlement Agreement...`
+  const getSectionName = (section: string) => {
+    const names: { [key: string]: string } = {
+      'A': 'Basic Info',
+      'B': 'Marriage Details', 
+      'C': 'Residency & Grounds',
+      'D': 'Property & Support',
+      'E': 'Name Change',
+      'F': 'Filing & Support'
     }
-
-    return previews[formId] || 'Form preview not available'
+    return names[section] || section
   }
 
-  const downloadForm = (formId: string) => {
-    // Simulate download
-    console.log(`Downloading ${formId}`)
-    // In a real app, this would trigger an actual file download
-  }
-
-  const downloadAllForms = () => {
-    generatedForms.forEach(form => {
-      if (form.status === 'completed') {
-        downloadForm(form.id)
-      }
-    })
-  }
-
-  if (!formData) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#1e2a3b' }}>
-        <div className="text-white">Loading...</div>
-      </div>
-    )
+  const getCourtFormDisplayName = (formCode: string) => {
+    const names: { [key: string]: string } = {
+      'UD-1': 'Summons with Notice',
+      'UD-2': 'Verified Complaint', 
+      'UD-6': 'Affidavit of Service',
+      'UD-9': 'Financial Disclosure',
+      'UD-10': 'Settlement Agreement',
+      'UD-11': 'Judgment of Divorce',
+      'DOH-2168': 'Vital Records',
+      'Fee_Waiver': 'Fee Waiver Application'
+    }
+    return names[formCode] || formCode
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#1e2a3b' }}>
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-white to-cyan-50 py-8">
+      <div className="max-w-6xl mx-auto px-4">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Form Generation</h1>
-          <p className="text-gray-400">Review your information and generate the required divorce forms</p>
+        <div className="text-center mb-8">
+          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+            Field-to-Form Mapping System
+          </h1>
+          <p className="text-lg text-gray-600">
+            Test and verify the mapping between Google Form fields, Formstack tags, and court forms.
+            Based on client&apos;s exact Google Form specifications.
+          </p>
         </div>
 
-        {currentStep === 'review' && (
-          <div className="space-y-8">
-            {/* Information Review */}
-            <div className="rounded-lg border border-gray-600 p-6 backdrop-blur-sm" style={{ backgroundColor: 'hsla(0, 0%, 100%, 0.05)' }}>
-              <h2 className="text-xl font-semibold text-white mb-4">Review Your Information</h2>
-              
-              <div className="grid md:grid-cols-2 gap-6">
-                {/* Personal Information */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium text-cyan-400 flex items-center">
-                    <User className="h-5 w-5 mr-2" />
-                    Personal Information
-                  </h3>
-                  <div className="space-y-2 text-gray-300">
-                    <p><span className="font-medium">Name:</span> {formData.firstName} {formData.lastName}</p>
-                    <p><span className="font-medium">Date of Birth:</span> {formData.dateOfBirth}</p>
-                    <p><span className="font-medium">Email:</span> {formData.email}</p>
-                    <p><span className="font-medium">Phone:</span> {formData.phone}</p>
-                    <div className="flex items-center space-x-2">
-                      <span className="font-medium">SSN:</span>
-                      <span className="font-mono">
-                        {showSSN ? formData.socialSecurityNumber : '***-**-' + formData.socialSecurityNumber.slice(-4)}
+        {/* Stats */}
+        <div className="grid md:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white rounded-2xl p-6 shadow-lg">
+            <div className="flex items-center gap-3">
+              <FileText className="h-8 w-8 text-cyan-600" />
+              <div>
+                <p className="text-2xl font-bold">{formFieldMappings.length}</p>
+                <p className="text-sm text-gray-600">Total Fields</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-2xl p-6 shadow-lg">
+            <div className="flex items-center gap-3">
+              <FileText className="h-8 w-8 text-green-600" />
+              <div>
+                <p className="text-2xl font-bold">{courtForms.length}</p>
+                <p className="text-sm text-gray-600">Court Forms</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-2xl p-6 shadow-lg">
+            <div className="flex items-center gap-3">
+              <FileText className="h-8 w-8 text-blue-600" />
+              <div>
+                <p className="text-2xl font-bold">
+                  {formFieldMappings.filter(f => f.required).length}
+                </p>
+                <p className="text-sm text-gray-600">Required Fields</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-2xl p-6 shadow-lg">
+            <div className="flex items-center gap-3">
+              <FileText className="h-8 w-8 text-purple-600" />
+              <div>
+                <p className="text-2xl font-bold">
+                  {formFieldMappings.filter(f => f.conditional).length}
+                </p>
+                <p className="text-sm text-gray-600">Conditional Fields</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Controls */}
+        <div className="bg-white rounded-2xl p-6 shadow-lg mb-8">
+          <div className="grid md:grid-cols-4 gap-4">
+            <input
+              type="text"
+              placeholder="Search fields, tags, or descriptions..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500"
+            />
+            <select
+              value={selectedSection}
+              onChange={(e) => setSelectedSection(e.target.value)}
+              className="px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500"
+            >
+              <option value="">All Sections</option>
+              {sections.map(section => (
+                <option key={section} value={section}>
+                  Section {section} - {getSectionName(section)}
+                </option>
+              ))}
+            </select>
+            <select
+              value={selectedCourtForm}
+              onChange={(e) => setSelectedCourtForm(e.target.value)}
+              className="px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500"
+            >
+              <option value="">All Court Forms</option>
+              {courtForms.map(form => (
+                <option key={form} value={form}>
+                  {form} - {getCourtFormDisplayName(form)}
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={handleDownloadCSV}
+              className="flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-600 to-cyan-700 text-white px-6 py-3 rounded-xl font-semibold"
+            >
+              <Download className="h-5 w-5" />
+              Export CSV
+            </button>
+          </div>
+        </div>
+
+        {/* Mapping Table */}
+        <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-4 text-left">Section</th>
+                  <th className="px-6 py-4 text-left">Google Form Field</th>
+                  <th className="px-6 py-4 text-left">Description</th>
+                  <th className="px-6 py-4 text-left">Formstack Tag</th>
+                  <th className="px-6 py-4 text-left">Court Forms</th>
+                  <th className="px-6 py-4 text-left">Type</th>
+                  <th className="px-6 py-4 text-left">Required</th>
+                  <th className="px-6 py-4 text-left">Conditional</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {filteredMappings.map((mapping, index) => (
+                  <tr key={index} className="hover:bg-gray-50">
+                    <td className="px-6 py-4">
+                      <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">
+                        {mapping.section}
                       </span>
-                      <button
-                        onClick={() => setShowSSN(!showSSN)}
-                        className="text-cyan-400 hover:text-cyan-300"
-                      >
-                        {showSSN ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Address Information */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium text-cyan-400 flex items-center">
-                    <MapPin className="h-5 w-5 mr-2" />
-                    Address
-                  </h3>
-                  <div className="space-y-2 text-gray-300">
-                    <p>{formData.streetAddress}</p>
-                    <p>{formData.city}, {formData.state} {formData.zipCode}</p>
-                  </div>
-                </div>
-
-                {/* Spouse Information */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium text-cyan-400 flex items-center">
-                    <User className="h-5 w-5 mr-2" />
-                    Spouse Information
-                  </h3>
-                  <div className="space-y-2 text-gray-300">
-                    <p><span className="font-medium">Name:</span> {formData.spouseFirstName} {formData.spouseLastName}</p>
-                    <p><span className="font-medium">Date of Birth:</span> {formData.spouseDateOfBirth}</p>
-                    <p><span className="font-medium">Email:</span> {formData.spouseEmail || 'Not provided'}</p>
-                    <p><span className="font-medium">Phone:</span> {formData.spousePhone || 'Not provided'}</p>
-                  </div>
-                </div>
-
-                {/* Marriage Information */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium text-cyan-400 flex items-center">
-                    <Calendar className="h-5 w-5 mr-2" />
-                    Marriage Details
-                  </h3>
-                  <div className="space-y-2 text-gray-300">
-                    <p><span className="font-medium">Marriage Date:</span> {formData.marriageDate}</p>
-                    <p><span className="font-medium">Location:</span> {formData.marriageLocation}</p>
-                    {formData.separationDate && (
-                      <p><span className="font-medium">Separation Date:</span> {formData.separationDate}</p>
-                    )}
-                    <p><span className="font-medium">Children:</span> {formData.hasChildren ? `${formData.childrenDetails.length} child(ren)` : 'None'}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-6 pt-6 border-t border-gray-600">
-                <button
-                  onClick={() => router.push('/information-collection')}
-                  className="text-cyan-400 hover:text-cyan-300 underline"
-                >
-                  Edit Information
-                </button>
-              </div>
-            </div>
-
-            {/* Required Forms */}
-            <div className="rounded-lg border border-gray-600 p-6 backdrop-blur-sm" style={{ backgroundColor: 'hsla(0, 0%, 100%, 0.05)' }}>
-              <h2 className="text-xl font-semibold text-white mb-4">Required Forms</h2>
-              <p className="text-gray-400 mb-6">The following forms will be generated with your information:</p>
-              
-              <div className="grid md:grid-cols-2 gap-4">
-                {requiredForms.map((form) => (
-                  <div key={form.id} className="flex items-start space-x-3 p-4 rounded-lg border border-gray-600">
-                    <FileText className="h-5 w-5 text-cyan-400 mt-0.5" />
-                    <div>
-                      <h3 className="font-medium text-white">{form.name}</h3>
-                      <p className="text-sm text-gray-400">{form.description}</p>
-                      <p className="text-xs text-gray-500 mt-1">Form {form.formNumber}</p>
-                    </div>
-                  </div>
+                    </td>
+                    <td className="px-6 py-4 font-medium text-sm">{mapping.googleFormField}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{mapping.description}</td>
+                    <td className="px-6 py-4 font-mono text-sm">{mapping.formstackTag}</td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-wrap gap-1">
+                        {mapping.courtForms.map(form => (
+                          <span key={form} className="px-2 py-1 bg-cyan-100 text-cyan-800 rounded-full text-xs">
+                            {form}
+                          </span>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                        {mapping.fieldType}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      {mapping.required ? (
+                        <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">Yes</span>
+                      ) : (
+                        <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs">No</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      {mapping.conditional ? (
+                        <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">
+                          {mapping.conditional.dependsOn} = {String(mapping.conditional.value)}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
+                    </td>
+                  </tr>
                 ))}
-              </div>
-            </div>
-
-            {/* Generate Button */}
-            <div className="flex justify-center">
-              <button
-                onClick={generateForms}
-                className="bg-cyan-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-semibold hover:bg-cyan-700 transition-colors flex items-center space-x-2 text-sm sm:text-base"
-              >
-                <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
-                <span>Generate All Forms</span>
-              </button>
-            </div>
+              </tbody>
+            </table>
           </div>
-        )}
+        </div>
 
-        {currentStep === 'generating' && (
-          <div className="space-y-6">
-            <div className="text-center">
-              <h2 className="text-xl sm:text-2xl font-semibold text-white mb-2">Generating Your Forms</h2>
-              <p className="text-gray-400 text-sm sm:text-base">Please wait while we fill in your information...</p>
-            </div>
-
-            <div className="space-y-4">
-              {generatedForms.map((form) => (
-                <div key={form.id} className="rounded-lg border border-gray-600 p-4 sm:p-6 backdrop-blur-sm" style={{ backgroundColor: 'hsla(0, 0%, 100%, 0.05)' }}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      {form.status === 'generating' && (
-                        <div className="animate-spin rounded-full h-5 w-5 sm:h-6 sm:w-6 border-b-2 border-cyan-500"></div>
-                      )}
-                      {form.status === 'completed' && (
-                        <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-green-500" />
-                      )}
-                      <div>
-                        <h3 className="font-medium text-white text-sm sm:text-base">{form.name}</h3>
-                        <p className="text-xs sm:text-sm text-gray-400">{form.description}</p>
-                      </div>
-                    </div>
-                    <div className="text-xs sm:text-sm text-gray-400">
-                      {form.status === 'generating' && 'Processing...'}
-                      {form.status === 'completed' && 'Completed'}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {currentStep === 'completed' && (
-          <div className="space-y-6">
-            <div className="text-center">
-              <CheckCircle className="h-12 w-12 sm:h-16 sm:w-16 text-green-500 mx-auto mb-4" />
-              <h2 className="text-xl sm:text-2xl font-semibold text-white mb-2">Forms Generated Successfully!</h2>
-              <p className="text-gray-400 text-sm sm:text-base">All required forms have been filled with your information</p>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-              {generatedForms.map((form) => (
-                <div key={form.id} className="rounded-lg border border-gray-600 p-4 sm:p-6 backdrop-blur-sm" style={{ backgroundColor: 'hsla(0, 0%, 100%, 0.05)' }}>
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center space-x-3">
-                      <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-cyan-400" />
-                      <div>
-                        <h3 className="font-medium text-white text-sm sm:text-base">{form.name}</h3>
-                        <p className="text-xs sm:text-sm text-gray-400">{form.description}</p>
-                      </div>
-                    </div>
-                    <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" />
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <button
-                      onClick={() => downloadForm(form.id)}
-                      className="w-full bg-cyan-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-cyan-700 transition-colors flex items-center justify-center space-x-2 text-sm sm:text-base"
-                    >
-                      <Download className="h-3 w-3 sm:h-4 sm:w-4" />
-                      <span>Download PDF</span>
-                    </button>
-                    
-                    <details className="group">
-                      <summary className="cursor-pointer text-xs sm:text-sm text-cyan-400 hover:text-cyan-300">
-                        Preview Form
-                      </summary>
-                      <div className="mt-3 p-3 sm:p-4 bg-gray-800 rounded-lg text-xs sm:text-sm text-gray-300 font-mono whitespace-pre-wrap">
-                        {form.preview}
-                      </div>
-                    </details>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex flex-col sm:flex-row justify-center space-y-3 sm:space-y-0 sm:space-x-4">
-              <button
-                onClick={() => {
-                  // Open Calendly for lawyer scheduling
-                  // TODO: Replace with your actual Calendly link
-                  window.open('https://calendly.com/uncouple-divorce/consultation', '_blank')
-                }}
-                className="bg-green-600 text-white px-4 sm:px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors flex items-center justify-center space-x-2 text-sm sm:text-base"
-              >
-                <User className="h-4 w-4 sm:h-5 sm:w-5" />
-                <span>Schedule with a Lawyer</span>
-              </button>
-
-              <button
-                onClick={downloadAllForms}
-                className="bg-cyan-600 text-white px-4 sm:px-6 py-3 rounded-lg font-semibold hover:bg-cyan-700 transition-colors flex items-center justify-center space-x-2 text-sm sm:text-base"
-              >
-                <Download className="h-4 w-4 sm:h-5 sm:w-5" />
-                <span>Download All Forms</span>
-              </button>
-              
-              <button
-                onClick={() => router.push('/next-steps')}
-                className="bg-gray-600 text-white px-4 sm:px-6 py-3 rounded-lg font-semibold hover:bg-gray-700 transition-colors flex items-center justify-center space-x-2 text-sm sm:text-base"
-              >
-                <span>Next Steps</span>
-                <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
-              </button>
-            </div>
-          </div>
-        )}
-      </main>
+        <div className="mt-6 text-center">
+          <p className="text-sm text-gray-600">
+            Showing {filteredMappings.length} of {formFieldMappings.length} field mappings
+          </p>
+        </div>
+      </div>
     </div>
   )
 } 
